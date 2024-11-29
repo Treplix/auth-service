@@ -1,5 +1,5 @@
 // /src/controllers/authController.js
-const authService = require('../services/authService');
+import * as authService from '../services/authService.js'; // Importar correctamente el servicio
 
 // Controlador para registrar al usuario
 const registerUser = async (event) => {
@@ -55,8 +55,58 @@ const confirmUser = async (event) => {
   }
 };
 
-module.exports = {
-  registerUser,
-  loginUser,
-  confirmUser
+// Controlador para iniciar el flujo de cambio de contraseña
+const changePassword = async (event) => {
+  const { accessToken, previousPassword, proposedPassword } = JSON.parse(event.body);
+
+  try {
+    const result = await authService.changePassword(accessToken, previousPassword, proposedPassword);
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ message: 'Contraseña cambiada exitosamente', result })
+    };
+  } catch (error) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: `Error al cambiar la contraseña: ${error.message}` })
+    };
+  }
 };
+
+// Controlador para iniciar el flujo de recuperación de contraseña
+const forgotPassword = async (event) => {
+  const { email } = JSON.parse(event.body);
+
+  try {
+    const result = await authService.forgotPassword(email);
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ message: 'Recuperación de contraseña iniciada', result })
+    };
+  } catch (error) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: `Error al iniciar recuperación de contraseña: ${error.message}` })
+    };
+  }
+};
+
+// Controlador para confirmar el nuevo valor de la contraseña
+const confirmForgotPassword = async (event) => {
+  const { email, confirmationCode, newPassword } = JSON.parse(event.body);
+
+  try {
+    const result = await authService.confirmForgotPassword(email, confirmationCode, newPassword);
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ message: 'Contraseña restablecida exitosamente', result })
+    };
+  } catch (error) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: `Error al restablecer la contraseña: ${error.message}` })
+    };
+  }
+};
+
+export { registerUser, loginUser, confirmUser, changePassword, forgotPassword, confirmForgotPassword };  // Exportar correctamente las funciones

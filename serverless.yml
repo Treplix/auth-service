@@ -1,0 +1,40 @@
+service: treplix-auth-service
+
+provider:
+  name: aws
+  runtime: nodejs16.x  # Usamos la versión 22.x de Node.js
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}  # Si no se pasa 'stage', será 'dev' por defecto
+
+functions:
+  auth:
+    handler: src/index.handler
+    name: ${self:custom.prefix}  # Prefijo dinámico por stage
+    events:
+      - http:
+          path: auth/register
+          method: post
+      - http:
+          path: auth/login
+          method: post
+      - http:
+          path: auth/confirm
+          method: post
+      - http:
+          path: auth/change-password
+          method: post
+      - http:
+          path: auth/forgot-password
+          method: post
+      - http:
+          path: auth/confirm-forgot-password
+          method: post
+
+plugins:
+  - serverless-offline
+
+custom:
+  prefix: ${self:service}-${self:provider.stage}  # El prefijo es el nombre del stage
+
+# resources:
+#   - ${file(resources.yml)} 
