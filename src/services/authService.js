@@ -1,13 +1,14 @@
 import AWS from 'aws-sdk';
 
 // Configuración de AWS y Cognito
-AWS.config.update({ region: 'us-east-1' });               // Configurar la región de AWS
+AWS.config.update({ region: process.env.AWS_REGION });    // Configurar la región de AWS
 const cognito = new AWS.CognitoIdentityServiceProvider(); // Crear la instancia de Cognito
+const clientId = process.env.CLIENT_ID;                   // viene del serverless.yml
 
 // Función para registrar un usuario
 const signUp = async (email, password, firstName, lastName) => {
   const params = {
-    ClientId: '7mgresnoabqf0trq0cqg4gf18f',   // Reemplaza con el ClientId de tu App Client en Cognito
+    ClientId: clientId,                       // Reemplaza con el ClientId de tu App Client en Cognito
     Username: email,                          // El email será el "username"
     Password: password,                       // La contraseña del usuario
     UserAttributes: [
@@ -29,8 +30,8 @@ const signUp = async (email, password, firstName, lastName) => {
 // Función para autenticar al usuario
 const signIn = async (email, password) => {
   const params = {
-    AuthFlow: 'USER_PASSWORD_AUTH',           // Tipo de flujo para autenticar usuarios
-    ClientId: '7mgresnoabqf0trq0cqg4gf18f',   // Reemplaza con el ClientId de tu App Client en Cognito
+    AuthFlow: 'USER_PASSWORD_AUTH',   // Tipo de flujo para autenticar usuarios
+    ClientId: clientId,               // Reemplaza con el ClientId de tu App Client en Cognito
     AuthParameters: {
       USERNAME: email,
       PASSWORD: password,
@@ -49,7 +50,7 @@ const signIn = async (email, password) => {
 // Función para confirmar al usuario usando el código de confirmación enviado por email
 const confirmUser = async (email, confirmationCode) => {
   const params = {
-    ClientId: '7mgresnoabqf0trq0cqg4gf18f',   // Reemplaza con el ClientId de tu App Client en Cognito
+    ClientId: clientId,                       // Reemplaza con el ClientId de tu App Client en Cognito
     Username: email,                          // El email del usuario
     ConfirmationCode: confirmationCode,       // El código de confirmación recibido por correo
   };
@@ -82,8 +83,8 @@ const changePassword = async (accessToken, previousPassword, proposedPassword) =
 // Función para iniciar el flujo de recuperación de contraseña
 const forgotPassword = async (email) => {
   const params = {
-    ClientId: '7mgresnoabqf0trq0cqg4gf18f', // ID de tu App Client de Cognito
-    Username: email,                        // El email del usuario
+    ClientId: clientId, // ID de tu App Client de Cognito
+    Username: email,    // El email del usuario
   };
 
   try {
@@ -97,7 +98,7 @@ const forgotPassword = async (email) => {
 // Función para confirmar la nueva contraseña
 const confirmForgotPassword = async (email, confirmationCode, newPassword) => {
   const params = {
-    ClientId: '7mgresnoabqf0trq0cqg4gf18f',   // ID de tu App Client de Cognito
+    ClientId: clientId,   // ID de tu App Client de Cognito
     Username: email,                          // El email del usuario
     ConfirmationCode: confirmationCode,       // El código de verificación recibido
     Password: newPassword,                    // Nueva contraseña del usuario

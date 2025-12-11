@@ -1,10 +1,14 @@
-service: treplix-auth-service
+service: ${self:provider.stage}-auth-service
 
 provider:
   name: aws
-  runtime: nodejs16.x  # Usamos la versión 22.x de Node.js
-  region: us-east-1
+  runtime: nodejs24.x  # Usamos la versión 22.x de Node.js
+  region: ${env:AWS_REGION}
   stage: ${opt:stage, 'dev'}  # Si no se pasa 'stage', será 'dev' por defecto
+  endpointType: regional
+  SecurityPolicy: SecurityPolicy_TLS13_1_3_2025_09
+  environment:
+    CLIENT_ID: !Ref AuthUserPoolClient
 
 functions:
   auth:
@@ -30,11 +34,34 @@ functions:
           path: auth/confirm-forgot-password
           method: post
 
+resources:
+  Resources:
+    AuthUserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: ${self:custom.prefix}-userpool
+        AutoVerifiedAttributes:
+          - email
+
+    AuthUserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        UserPoolId: !Ref AuthUserPool
+        ClientName: ${self:custom.prefix}-client
+        GenerateSecret: false
+        ExplicitAuthFlows:
+          - ALLOW_USER_PASSWORD_AUTH
+          - ALLOW_REFRESH_TOKEN_AUTH
+          - ALLOW_USER_AUTH
+          - ALLOW_ADMIN_USER_PASSWORD_AUTH
+
 plugins:
   - serverless-offline
+  - serverless-localstack
 
 custom:
-  prefix: ${self:service}-${self:provider.stage}  # El prefijo es el nombre del stage
+  prefix: ${self:service} # El prefijo es el nombre del stage
+  localstack:
+    stages:
+      - dev
 
-# resources:
-#   - ${file(resources.yml)} 
